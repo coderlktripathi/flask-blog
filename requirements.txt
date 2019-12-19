@@ -17,6 +17,7 @@ lazy-object-proxy==1.4.3
 MarkupSafe==1.1.1
 mccabe==0.6.1
 pathspec==0.6.0
+Pillow==6.2.1
 pycparser==2.19
 pylint==2.4.4
 regex==2019.12.19

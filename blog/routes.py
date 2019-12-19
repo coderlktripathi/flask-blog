@@ -1,21 +1,25 @@
+import os
+from secrets import token_hex
+from PIL import Image
+
 from blog import app, bcrypt, db
-from flask import render_template, url_for, flash, redirect
-from blog.models import User, Post
-from blog.forms import RegistrationForm, LoginForm
-from flask_login import login_user, current_user, logout_user
+from blog.forms import LoginForm, RegistrationForm, UpdateAccountForm
+from blog.models import Post, User
+from flask import flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required, login_user, logout_user
 
 posts = [
     {
-        "author": "Corey Schafer",
+        "author": "John Smith",
         "title": "Blog Post 1",
         "content": "First post content",
-        "date_posted": "April 20, 2018",
+        "date_posted": "April 20, 2019",
     },
     {
-        "author": "Jane Doe",
+        "author": "Wonder Women",
         "title": "Blog Post 2",
         "content": "Second post content",
-        "date_posted": "April 21, 2018",
+        "date_posted": "April 21, 2019",
     },
 ]
 
@@ -57,7 +61,8 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember_me.data)
-            return redirect(url_for('home'))
+            next_page = request.args.get('next') # variable to hold the next page url
+            return redirect(next_page) if next_page else redirect(url_for('home'))
         else:
             flash("Invalid credentials. Please check your username and password", "danger")
     return render_template("login.html", form=form)
@@ -67,3 +72,38 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+def save_picture(picture):
+    random_hex = token_hex(8)
+    _, file_extension = os.path.splitext(picture.filename)
+    picture_name = random_hex + file_extension
+    picture_path = os.path.join(app.root_path, 'static/profile-pics', picture_name)
+    output_size = (200, 200)
+    i = Image.open(picture)
+    i.thumbnail(output_size)
+    i.save(picture_path)
+
+    return picture_name
+
+"""Account Route."""
+@app.route('/account', methods=["GET", "POST"])
+@login_required
+def account():
+    profile_pic = url_for('static', filename='profile-pics/' + current_user.profile_pic)
+
+    form = UpdateAccountForm()
+    if form.validate_on_submit():
+        if form.profile_pic.data:
+            profile_pic = save_picture(form.profile_pic.data)
+            current_user.profile_pic = profile_pic
+
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+
+        db.session.commit()
+        flash('Your account has been updated', 'success')
+        return redirect(url_for('account'))
+    elif request.method == 'GET':
+        form.username.data = current_user.username
+        form.email.data = current_user.email
+    return render_template('account.html', profile_pic=profile_pic, form=form)
