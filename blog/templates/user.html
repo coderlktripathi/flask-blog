@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="content-section">
+      <div class="media">
+        <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile-pics/' + user.profile_pic) }}">
+        <div class="media-body">
+          <h2 class="account-heading font-italic">{{ user.username }}</h2>
+          <p class="text-secondary">{{ user.email }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="article-metadata">
+        <h3 class="text-center font-weight-light">Posts by {{user.username}}</h3>
+    </div>
+    {% for post in posts %}
+        <article class="media content-section">
+            <img class="rounded-circle article-img" src="{{ url_for('static', filename='profile-pics/' + post.author.profile_pic) }}">
+            <div class="media-body text-justify">
+                <div class="article-metadata">
+                    <span>{{ post.author.username }}</span>
+                    <small class="text-muted">{{ moment(post.posted_on).fromNow() }}</small>
+                </div>
+                <h4>{{ post.title }}</h4>
+                <p class="article-content">{{ post.body }}</p>
+            </div>
+        </article>
+    {% endfor %}
+{% endblock content %}
