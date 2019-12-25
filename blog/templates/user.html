@@ -10,9 +10,9 @@
       </div>
     </div>
     <div class="article-metadata">
-        <h3 class="text-center font-weight-light">Posts by {{user.username}}</h3>
+        <h3 class="text-center font-weight-light">Posts by {{user.username}} ({{ posts.total }})</h3>
     </div>
-    {% for post in posts %}
+    {% for post in posts.items %}
         <article class="media content-section">
             <img class="rounded-circle article-img" src="{{ url_for('static', filename='profile-pics/' + post.author.profile_pic) }}">
             <div class="media-body text-justify">
@@ -24,5 +24,16 @@
                 <p class="article-content">{{ post.body }}</p>
             </div>
         </article>
+    {% endfor %}
+    {% for page_num in posts.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+        {% if page_num %}
+            {% if posts.page == page_num %}
+                <a class="btn btn-info mb-4" href="{{ url_for('get_user', username=user.username, page=page_num) }}">{{ page_num }}</a>
+            {% else %}
+                <a class="btn btn-outline-info mb-4" href="{{ url_for('get_user', username=user.username, page=page_num) }}">{{ page_num }}</a>
+            {% endif %}
+        {% else %}
+            ...
+        {% endif %}
     {% endfor %}
 {% endblock content %}
