@@ -15,6 +15,7 @@ from blog.models import Post, User
 from flask import flash, redirect, render_template, request, url_for, abort
 from flask_login import current_user, login_required, login_user, logout_user
 from flask_mail import Message
+from datetime import datetime
 
 
 @app.route("/")
@@ -41,7 +42,7 @@ def register():
             "utf-8"
         )
         user = User(
-            username=form.username.data, email=form.email.data, password=hashed_password
+            username=form.username.data, email=form.email.data, about_me=form.about_me.data, password=hashed_password
         )
         db.session.add(user)
         db.session.commit()
@@ -104,6 +105,7 @@ def account():
 
         current_user.username = form.username.data
         current_user.email = form.email.data
+        current_user.about_me = form.about_me.data
 
         db.session.commit()
         flash("Your account has been updated", "success")
@@ -111,6 +113,7 @@ def account():
     elif request.method == "GET":
         form.username.data = current_user.username
         form.email.data = current_user.email
+        form.about_me.data = current_user.about_me
     return render_template("account.html", profile_pic=profile_pic, form=form)
 
 
@@ -222,3 +225,38 @@ def reset_token(token):
         return redirect(url_for("login"))
     return render_template("reset_token.html", form=form)
 
+@app.route('/follow/<username>')
+@login_required
+def follow(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('User {} not found.'.format(username), 'danger')
+        return redirect(url_for('home'))
+    if user == current_user:
+        flash('You cannot follow yourself!', 'danger')
+        return redirect(url_for('get_user', username=username))
+    current_user.follow(user)
+    db.session.commit()
+    flash('You are following {}!'.format(username), 'info')
+    return redirect(url_for('get_user', username=username))
+
+@app.route('/unfollow/<username>')
+@login_required
+def unfollow(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('User {} not found.'.format(username), 'danger')
+        return redirect(url_for('home'))
+    if user == current_user:
+        flash('You cannot unfollow yourself!', 'danger')
+        return redirect(url_for('get_user', username=username))
+    current_user.unfollow(user)
+    db.session.commit()
+    flash('You are not following {}.'.format(username), 'info')
+    return redirect(url_for('get_user', username=username))
+
+@app.before_request
+def before_request():
+    if current_user.is_authenticated:
+        current_user.last_seen = datetime.utcnow()
+        db.session.commit()
