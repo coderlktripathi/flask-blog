@@ -10,9 +10,10 @@ from blog.forms import (
     PostForm,
     RequestResetForm,
     ResetPasswordForm,
+    MessageForm
 )
-from blog.models import Post, User
-from flask import flash, redirect, render_template, request, url_for, abort
+from blog.models import Post, User, Notification, Message as MessageModal
+from flask import flash, redirect, render_template, request, url_for, abort, jsonify
 from flask_login import current_user, login_required, login_user, logout_user
 from flask_mail import Message
 from datetime import datetime
@@ -260,3 +261,60 @@ def before_request():
     if current_user.is_authenticated:
         current_user.last_seen = datetime.utcnow()
         db.session.commit()
+
+@app.route('/send_message/<recipient>', methods=['GET', 'POST'])
+@login_required
+def send_message(recipient):
+    user = User.query.filter_by(username=recipient).first_or_404()
+    form = MessageForm()
+    if form.validate_on_submit():
+        msg = MessageModal(author=current_user, recipient=user,
+                      body=form.message.data)
+        user.add_notification('unread_message_count', user.new_messages())
+        db.session.add(msg)
+        db.session.commit()
+        flash('Your message has been sent.', 'success')
+        return redirect(url_for('get_user', username=recipient))
+    return render_template('send_message.html', title='Send Message',
+                           form=form, recipient=recipient)
+
+@app.route('/messages')
+@login_required
+def messages():
+    current_user.last_message_read_time = datetime.utcnow()
+    current_user.add_notification('unread_message_count', 0)
+    db.session.commit()
+    page = request.args.get('page', 1, type=int)
+    messages = current_user.messages_received.order_by(
+        MessageModal.timestamp.desc()).paginate(
+            page, 5, False)
+
+    return render_template('messages.html', messages=messages)
+
+@app.route("/message/<int:message_id>/delete", methods=["POST"])
+@login_required
+def delete_message(message_id):
+    message = MessageModal.query.get_or_404(message_id)
+    if message.author != current_user:
+        abort(403)
+    db.session.delete(message)
+    db.session.commit()
+    flash("Your message has been deleted!!", "success")
+    return redirect(url_for("messages"))
+
+@app.shell_context_processor
+def make_shell_context():
+    return {'db': db, 'User': User, 'Post': Post, 'Message': Message,
+            'Notification': Notification}
+
+@app.route('/notifications')
+@login_required
+def notifications():
+    since = request.args.get('since', 0.0, type=float)
+    notifications = current_user.notifications.filter(
+        Notification.timestamp > since).order_by(Notification.timestamp.asc())
+    return jsonify([{
+        'name': n.name,
+        'data': n.get_data(),
+        'timestamp': n.timestamp
+    } for n in notifications])

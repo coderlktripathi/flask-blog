@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h1>Messages</h1>
+    {% for message in messages.items %}
+        <article class="media content-section">
+            <img class="rounded-circle article-img"
+                src="{{ url_for('static', filename='profile-pics/' + message.author.profile_pic) }}">
+            <div class="media-body">
+                <div class="article-metadata">
+                    <a class="mr-2" href="{{ url_for('get_user', username=message.author.username) }}">{{ message.author.username }}</a>
+                    <small class="text-muted">{{ moment(message.timestamp).fromNow() }}</small>
+                    {% if message.author == current_user %}
+                    <div>
+                        <button type="button" class="btn btn-danger btn-sm m-1" data-toggle="modal"
+                            data-target="#deleteModal">Delete</button>
+                    </div>
+                    {% endif %}
+                </div>
+                <h2 class="article-title">{{ message.title }}</h2>
+                <p class="article-content">{{ message.body }}</p>
+            </div>
+        </article>
+        <!-- Modal -->
+        <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel">Delete Message?</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <span>Your message will be deleted. Are you sure?</span>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <form action="{{ url_for('delete_message', message_id=message.id) }}" method="POST">
+                            <input class="btn btn-danger" type="submit" value="Delete">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    {% for page_num in messages.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+        {% if page_num %}
+            {% if messages.page == page_num %}
+                <a class="btn btn-info mb-4" href="{{ url_for('messages', page=page_num) }}">{{ page_num }}</a>
+            {% else %}
+                <a class="btn btn-outline-info mb-4" href="{{ url_for('messages', page=page_num) }}">{{ page_num }}</a>
+            {% endif %}
+        {% else %}
+            ...
+        {% endif %}
+    {% endfor %}
+{% endblock content%}

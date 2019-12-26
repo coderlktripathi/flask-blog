@@ -3,6 +3,7 @@ from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 from flask_moment import Moment
 from flask_mail import Mail
+from flask_migrate import Migrate
 
 from flask_login import LoginManager
 
@@ -21,6 +22,7 @@ app.config["MAIL_PASSWORD"] = ""
 
 # create SQLAlchemy class instance as db
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 bcrypt = Bcrypt(app)
 moment = Moment(app)
 mail = Mail(app)
