@@ -1,9 +1,10 @@
-from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
-from wtforms import BooleanField, PasswordField, StringField, SubmitField, TextAreaField
+from flask_wtf import FlaskForm
+from flask_wtf.file import FileAllowed, FileField
+from wtforms import BooleanField, PasswordField, StringField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
-from blog.models import User
+
+from awesomeblog.models import User
 
 
 class RegistrationForm(FlaskForm):
@@ -62,12 +63,6 @@ class UpdateAccountForm(FlaskForm):
                 raise ValidationError("Email already exists. Please try another one.")
 
 
-class PostForm(FlaskForm):
-    title = StringField("Title", validators=[DataRequired(), Length(min=1, max=164)])
-    body = TextAreaField("Body", validators=[DataRequired()])
-    submit = SubmitField("Submit")
-
-
 class RequestResetForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
     submit = SubmitField("Request Password Reset")
@@ -86,9 +81,3 @@ class ResetPasswordForm(FlaskForm):
         "Confirm Password", validators=[DataRequired(), EqualTo("password")]
     )
     submit = SubmitField("Reset Password")
-
-
-class MessageForm(FlaskForm):
-    message = TextAreaField('Message', validators=[
-        DataRequired(), Length(min=0, max=140)])
-    submit = SubmitField('Submit')

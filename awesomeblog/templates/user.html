@@ -12,11 +12,11 @@
                 <p class="text-secondary">Last seen : {{ moment(user.last_seen).fromNow() }}</p>
             {% endif %}
             {% if not current_user.is_following(user) %}
-                <p><a href="{{ url_for('follow', username=user.username) }}">Follow</a></p>
+                <p><a href="{{ url_for('users.follow', username=user.username) }}">Follow</a></p>
                 {% else %}
-                <p><a href="{{ url_for('unfollow', username=user.username) }}">Unfollow</a></p>
+                <p><a href="{{ url_for('users.unfollow', username=user.username) }}">Unfollow</a></p>
             {% endif %}
-            <p><a href="{{ url_for('send_message', recipient=user.username) }}">Send Private Message</a></p>
+            <p><a href="{{ url_for('msgs.send_message', recipient=user.username) }}">Send Private Message</a></p>
         </div>
       </div>
     </div>
@@ -39,9 +39,9 @@
     {% for page_num in posts.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
         {% if page_num %}
             {% if posts.page == page_num %}
-                <a class="btn btn-info mb-4" href="{{ url_for('get_user', username=user.username, page=page_num) }}">{{ page_num }}</a>
+                <a class="btn btn-info mb-4" href="{{ url_for('users.get_user', username=user.username, page=page_num) }}">{{ page_num }}</a>
             {% else %}
-                <a class="btn btn-outline-info mb-4" href="{{ url_for('get_user', username=user.username, page=page_num) }}">{{ page_num }}</a>
+                <a class="btn btn-outline-info mb-4" href="{{ url_for('users.get_user', username=user.username, page=page_num) }}">{{ page_num }}</a>
             {% endif %}
         {% else %}
             ...
