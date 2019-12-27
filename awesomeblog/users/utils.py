@@ -1,11 +1,10 @@
 import os
 from secrets import token_hex
 
-from flask import current_app, request, url_for
-from flask_mail import Message
+from flask import current_app, render_template
 from PIL import Image
 
-from awesomeblog import mail
+from awesomeblog.email import send_email
 
 
 def save_picture(picture):
@@ -13,7 +12,7 @@ def save_picture(picture):
     _, file_extension = os.path.splitext(picture.filename)
     picture_name = random_hex + file_extension
     picture_path = os.path.join(
-        current_app.root_path, "static/profile-pics", picture_name
+        current_app.root_path, 'static/profile-pics', picture_name
     )
     output_size = (200, 200)
     i = Image.open(picture)
@@ -25,13 +24,10 @@ def save_picture(picture):
 
 def send_reset_email(user):
     token = user.get_reset_token()
-    msg = Message(
-        "Password Reset Request",
-        sender="noreply@awesomeblog.in",
-        recipients=[user.email],
-    )
-    msg.body = f"""To reset your password, visit the following link:
-{url_for('users.reset_token', token=token, _external=True)}
-If you did not make this request then simply ignore this email and no changes will be made.
-"""
-    mail.send(msg)
+    subject = 'Password Reset Request'
+    sender = 'noreply@awesomeblog.in'
+    recipients = [user.email]
+    txt_body = render_template('email/reset_password.txt', user=user, token=token)
+    txt_html = render_template('email/reset_password.html', user=user, token=token)
+
+    send_email(subject, sender, recipients, txt_body, txt_html)
