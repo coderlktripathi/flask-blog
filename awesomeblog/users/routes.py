@@ -134,13 +134,6 @@ def unfollow(username):
     return redirect(url_for("users.get_user", username=username))
 
 
-@users.before_request
-def before_request():
-    if current_user.is_authenticated:
-        current_user.last_seen = datetime.utcnow()
-        db.session.commit()
-
-
 @users.route("/reset_password", methods=["GET", "POST"])
 def reset_request():
     if current_user.is_authenticated:
