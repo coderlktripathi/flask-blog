@@ -135,7 +135,7 @@ class User(db.Model, UserMixin):
         return n
 
 
-class Post(db.Model):
+class Post(SearchableMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(164), nullable=False)
     body = db.Column(db.Text, nullable=False)

@@ -1,26 +1,37 @@
 from datetime import datetime
 
-from flask import Blueprint, g, render_template, request, redirect, url_for, current_app
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    g,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 from flask_login import current_user, login_required
 
 from awesomeblog import db
 from awesomeblog.main.forms import SearchForm
 from awesomeblog.models import Post
 
-main = Blueprint('main', __name__)
+main = Blueprint("main", __name__)
 
 
-@main.route('/')
-@main.route('/home')
+@main.route("/")
+@main.route("/home")
 def home():
-    page = request.args.get('page', 1, type=int)
-    posts = Post.query.order_by(Post.posted_on.desc()).paginate(page=page, per_page=5)
-    return render_template('home.html', posts=posts)
+    page = request.args.get("page", 1, type=int)
+    posts = Post.query.order_by(Post.posted_on.desc()).paginate(
+        page=page, per_page=current_app.config["POSTS_PER_PAGE"]
+    )
+    return render_template("home.html", posts=posts)
 
 
-@main.route('/about')
+@main.route("/about")
 def about():
-    return render_template('about.html')
+    return render_template("about.html")
 
 
 @main.before_request
@@ -31,28 +42,33 @@ def before_request():
         g.search_form = SearchForm()
 
 
-@main.route('/search')
+@main.route("/search")
 @login_required
 def search():
     if not g.search_form.validate():
-        return redirect(url_for('main.home'))
-    page = request.args.get('page', 1, type=int)
+        return redirect(url_for("main.home"))
+    page = request.args.get("page", 1, type=int)
     posts, total = Post.search(
-        g.search_form.q.data, page, current_app.config['POSTS_PER_PAGE']
+        g.search_form.q.data, page, current_app.config["POSTS_PER_PAGE"]
     )
+
+    if total == 0:
+        flash("Oops!! no results found.", "danger")
+        return redirect(url_for("main.home"))
+
     next_url = (
-        url_for('main.search', q=g.search_form.q.data, page=page + 1)
-        if total > page * current_app.config['POSTS_PER_PAGE']
+        url_for("main.search", q=g.search_form.q.data, page=page + 1)
+        if total > page * current_app.config["POSTS_PER_PAGE"]
         else None
     )
     prev_url = (
-        url_for('main.search', q=g.search_form.q.data, page=page - 1)
+        url_for("main.search", q=g.search_form.q.data, page=page - 1)
         if page > 1
         else None
     )
     return render_template(
-        'search.html',
-        title='Search',
+        "search.html",
+        title="Search",
         posts=posts,
         next_url=next_url,
         prev_url=prev_url,

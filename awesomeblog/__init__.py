@@ -40,11 +40,13 @@ def create_app(config_class=Config):
     from awesomeblog.posts.routes import posts
     from awesomeblog.main.routes import main
     from awesomeblog.messages.routes import msgs
+    from awesomeblog.errors.handlers import errors
 
     app.register_blueprint(users)
     app.register_blueprint(posts)
     app.register_blueprint(msgs)
     app.register_blueprint(main)
+    app.register_blueprint(errors)
 
     return app
 

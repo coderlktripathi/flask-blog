@@ -9,6 +9,6 @@ class Config:
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     MAIL_USERNAME = 'gyanp7987@gmail.com'
-    MAIL_PASSWORD = 'gyanp@123'
-    # ELASTICSEARCH_URL = 'http://localhost:9200'
+    MAIL_PASSWORD = ''
+    ELASTICSEARCH_URL = 'http://localhost:9200'
     POSTS_PER_PAGE = 5
