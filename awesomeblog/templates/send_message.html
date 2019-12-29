@@ -1,3 +1,5 @@
+{% from "macros/form_field_macro.html" import displayFormField %}
+
 {% extends "layout.html" %}
 {% block content %}
     <div class="content-section">
@@ -5,20 +7,10 @@
             {{ form.hidden_tag() }}
             <fieldset class="form-group">
                 <legend class="border-bottom mb-4">Send Message to: {{ recipient }}</legend>
-                <div class="form-group">
-                    {{ form.message.label(class="form-control-label") }}
-                    {% if form.message.errors %}
-                        {{ form.message(class="form-control form-control-sm is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.message.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.message(class="form-control form-control-sm") }}
-                    {% endif %}
-                </div>
-            </fieldset>
+                
+                <!-- diplay form field using macro -->
+                {{ displayFormField(form.message) }}
+
             <div class="form-group">
                 {{ form.submit(class="btn btn-outline-info") }}
             </div>
